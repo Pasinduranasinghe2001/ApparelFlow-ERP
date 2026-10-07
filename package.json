@@ -2,6 +2,7 @@
   "name": "apparelflow-erp",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,10 +13,10 @@
     "db:studio": "npx prisma studio"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "node --loader ts-node/esm prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.0.0",
+    "@prisma/client": "^6.19.3",
     "bcryptjs": "^2.4.3",
     "next": "16.4.0",
     "react": "19.3.0",
@@ -27,11 +28,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "prisma": "^6.0.0",
+    "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5",
-    "vitest": "^2.0.0"
+    "vitest": "^2.1.9"
   }
 }
-
