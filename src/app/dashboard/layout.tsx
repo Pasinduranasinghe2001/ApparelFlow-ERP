@@ -1,6 +1,6 @@
 import { auth, signOut } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
+import ThemeToggle from "@/components/ThemeToggle";
 
 // Tell Next.js this layout must be rendered dynamically (reads auth session).
 // Required when nextConfig.cacheComponents is enabled.
@@ -23,6 +23,12 @@ export default async function DashboardLayout({
     sewing_supervisor: "Sewing Queue",
   };
 
+  const roleBadgeColor: Record<string, string> = {
+    cutting_supervisor: "from-blue-500 to-blue-600",
+    cutting_verifier: "from-emerald-500 to-emerald-600",
+    sewing_supervisor: "from-purple-500 to-purple-600",
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
       {/* Top Navbar */}
@@ -41,12 +47,22 @@ export default async function DashboardLayout({
               </div>
             </div>
 
-            <div className="flex items-center gap-4 sm:gap-6">
-              <RoleSwitcher currentRole={session.user.role} />
+            <div className="flex items-center gap-3 sm:gap-4">
+              {/* Role badge */}
+              <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r ${roleBadgeColor[session.user.role] || "from-slate-500 to-slate-600"} bg-opacity-10 border border-white/10`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="text-xs font-medium text-white/90">
+                  {roleLabels[session.user.role] || session.user.role}
+                </span>
+              </div>
 
               <div className="text-sm text-slate-400 hidden xl:block">
                 <span className="text-white font-medium">{session.user.name || session.user.email}</span>
               </div>
+
+              {/* Theme Toggle Button */}
+              <ThemeToggle isFixed={false} />
+
               <form
                 action={async () => {
                   "use server";
