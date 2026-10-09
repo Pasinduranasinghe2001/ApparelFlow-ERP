@@ -57,8 +57,8 @@ export async function POST(
 
       // Compute fabric wastage %: [ (Actual Fabric Used - Expected Fabric) / Expected Fabric ] * 100
       let wastagePct: number | null = null;
-      if (order.recipe?.stdFabricYds && order.targetQty > 0) {
-        const expectedFabric = order.targetQty * order.recipe.stdFabricYds;
+      if (order.recipe?.stdFabricYards && order.targetQty > 0) {
+        const expectedFabric = order.targetQty * order.recipe.stdFabricYards;
         wastagePct = Number(
           (((order.actualFabricYds - expectedFabric) / expectedFabric) * 100).toFixed(2)
         );

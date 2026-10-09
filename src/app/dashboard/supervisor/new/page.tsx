@@ -71,7 +71,7 @@ export default async function NewOrderPage() {
               <option value="" className="bg-slate-900 text-slate-400">Select a recipe...</option>
               {recipes.map((r) => (
                 <option key={r.id} value={r.id} className="bg-slate-900 text-white">
-                  {r.name} ({r.recipeCode}) — Std {r.stdFabricYds} yds/pc
+                  {r.name} ({r.recipeCode}) — Std {r.stdFabricYards} yds/pc
                 </option>
               ))}
             </select>

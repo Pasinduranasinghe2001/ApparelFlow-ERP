@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/sewing/queue
