@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { SupervisorOrdersTable } from "@/components/SupervisorOrdersTable";
-import { Scissors, Clock, CheckCircle2, AlertTriangle, Layers } from "lucide-react";
+import { Scissors, Clock, CheckCircle2, AlertTriangle, Layers, RotateCcw } from "lucide-react";
 
 export const instant = false;
 
@@ -10,6 +10,10 @@ export default async function SupervisorDashboard() {
     include: {
       recipe: true,
       creator: true,
+      verificationLogs: {
+        orderBy: { timestamp: "desc" },
+        take: 1,
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -18,6 +22,7 @@ export default async function SupervisorDashboard() {
   const cuttingCount = orders.filter((o) => o.status === "CUTTING_IN_PROGRESS").length;
   const pendingCount = orders.filter((o) => o.status === "PENDING_VERIFICATION").length;
   const verifiedCount = orders.filter((o) => o.status === "VERIFIED").length;
+  const rejectedCount = orders.filter((o) => o.status === "REJECTED").length;
   const totalUnits = orders.reduce((sum, o) => sum + o.targetQty, 0);
 
   return (
@@ -41,54 +46,63 @@ export default async function SupervisorDashboard() {
       </div>
 
       {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
-        <div className="p-4 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-800 shadow-lg">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Total Batches</span>
-            <Layers className="w-4 h-4 text-blue-400" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-slate-800 shadow-lg">
+          <div className="flex items-center justify-between text-slate-400 mb-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Total Batches</span>
+            <Layers className="w-3.5 h-3.5 text-blue-400" />
           </div>
           <div className="text-2xl font-bold text-white">{totalOrders}</div>
-          <span className="text-[11px] text-slate-500">All registered runs</span>
+          <span className="text-[10px] text-slate-500">All registered runs</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-blue-500/20 shadow-lg">
-          <div className="flex items-center justify-between text-blue-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">In Cutting</span>
-            <Scissors className="w-4 h-4 text-blue-400" />
+        <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-blue-500/20 shadow-lg">
+          <div className="flex items-center justify-between text-blue-400 mb-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">In Cutting</span>
+            <Scissors className="w-3.5 h-3.5 text-blue-400" />
           </div>
           <div className="text-2xl font-bold text-white">{cuttingCount}</div>
-          <span className="text-[11px] text-blue-400/80">Active floor cutting</span>
+          <span className="text-[10px] text-blue-400/80">Active floor cutting</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-amber-500/20 shadow-lg">
-          <div className="flex items-center justify-between text-amber-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Pending QC</span>
-            <Clock className="w-4 h-4 text-amber-400" />
+        <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-amber-500/20 shadow-lg">
+          <div className="flex items-center justify-between text-amber-400 mb-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Pending QC</span>
+            <Clock className="w-3.5 h-3.5 text-amber-400" />
           </div>
           <div className="text-2xl font-bold text-amber-400">{pendingCount}</div>
-          <span className="text-[11px] text-amber-400/80">At Verification Terminal</span>
+          <span className="text-[10px] text-amber-400/80">At Verification</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-emerald-500/20 shadow-lg">
-          <div className="flex items-center justify-between text-emerald-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">QC Passed</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+        <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-red-500/30 shadow-lg bg-red-950/10">
+          <div className="flex items-center justify-between text-red-400 mb-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Needs Re-Cut</span>
+            <RotateCcw className="w-3.5 h-3.5 text-red-400" />
+          </div>
+          <div className="text-2xl font-bold text-red-400">{rejectedCount}</div>
+          <span className="text-[10px] text-red-400/80">Returned by QC</span>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-emerald-500/20 shadow-lg">
+          <div className="flex items-center justify-between text-emerald-400 mb-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">QC Passed</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
           </div>
           <div className="text-2xl font-bold text-emerald-400">{verifiedCount}</div>
-          <span className="text-[11px] text-emerald-400/80">Released to Sewing</span>
+          <span className="text-[10px] text-emerald-400/80">Released to Sewing</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-purple-500/20 shadow-lg col-span-2 sm:col-span-1">
-          <div className="flex items-center justify-between text-purple-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Target Units</span>
-            <span className="text-xs font-mono">PCS</span>
+        <div className="p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-purple-500/20 shadow-lg col-span-2 sm:col-span-1">
+          <div className="flex items-center justify-between text-purple-400 mb-1.5">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Target Units</span>
+            <span className="text-[10px] font-mono">PCS</span>
           </div>
           <div className="text-2xl font-bold text-purple-400">{totalUnits.toLocaleString()}</div>
-          <span className="text-[11px] text-purple-400/80">Total scheduled garments</span>
+          <span className="text-[10px] text-purple-400/80">Scheduled garments</span>
         </div>
       </div>
 
-      {/* Orders Table with Search, Filter & CSV Export */}
+      {/* Orders Table with Search, Filter, Re-Cut & CSV Export */}
       <SupervisorOrdersTable orders={orders as any} />
     </div>
   );

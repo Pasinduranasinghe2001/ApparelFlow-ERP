@@ -230,3 +230,55 @@ describe("Manufacturing Multiplier Engine & Fabric Wastage Analytics", () => {
     expect(wastage).toBe(0);
   });
 });
+
+export function validateRecutGate(
+  role: string,
+  orderStatus: string,
+  currentFabricYds: number,
+  additionalFabricYds: number
+): { allowed: boolean; status: number; newStatus?: string; updatedFabricYds?: number; error?: string } {
+  if (role !== "cutting_supervisor") {
+    return { allowed: false, status: 403, error: "Unauthorized: only cutting supervisors can re-cut orders" };
+  }
+  if (orderStatus !== "REJECTED") {
+    return { allowed: false, status: 400, error: "Only rejected orders can be re-cut and resubmitted" };
+  }
+  const addYards = Math.max(0, additionalFabricYds || 0);
+  return {
+    allowed: true,
+    status: 200,
+    newStatus: "PENDING_VERIFICATION",
+    updatedFabricYds: currentFabricYds + addYards,
+  };
+}
+
+describe("Re-Cut & Resubmit Closed-Loop State Pipeline", () => {
+  it("allows cutting_supervisor to re-cut a REJECTED batch and transitions it to PENDING_VERIFICATION", () => {
+    const result = validateRecutGate("cutting_supervisor", "REJECTED", 95, 3.5);
+    expect(result.allowed).toBe(true);
+    expect(result.status).toBe(200);
+    expect(result.newStatus).toBe("PENDING_VERIFICATION");
+    expect(result.updatedFabricYds).toBe(98.5);
+  });
+
+  it("blocks non-supervisor roles from initiating re-cut action (403 Forbidden)", () => {
+    const verifierResult = validateRecutGate("cutting_verifier", "REJECTED", 95, 2);
+    expect(verifierResult.allowed).toBe(false);
+    expect(verifierResult.status).toBe(403);
+
+    const sewingResult = validateRecutGate("sewing_supervisor", "REJECTED", 95, 2);
+    expect(sewingResult.allowed).toBe(false);
+    expect(sewingResult.status).toBe(403);
+  });
+
+  it("rejects re-cut action on non-rejected orders (e.g. CUTTING_IN_PROGRESS or VERIFIED) with 400", () => {
+    const inProgressResult = validateRecutGate("cutting_supervisor", "CUTTING_IN_PROGRESS", 95, 0);
+    expect(inProgressResult.allowed).toBe(false);
+    expect(inProgressResult.status).toBe(400);
+
+    const verifiedResult = validateRecutGate("cutting_supervisor", "VERIFIED", 95, 0);
+    expect(verifiedResult.allowed).toBe(false);
+    expect(verifiedResult.status).toBe(400);
+  });
+});
+
