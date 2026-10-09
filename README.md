@@ -126,12 +126,45 @@ AI_OPTIMIZATION_REPORT.md
 
 ---
 
-## 🔒 Security
+## 🚀 Cloud Deployment (Vercel + Neon)
 
-- Server-side RBAC on all API routes
-- Hard stop: 422 if any RED component on approval
-- JWT identity — verifier ID never trusted from client
-- Sewing Queue enforces `WHERE status = 'VERIFIED'` at DB level
+The application is engineered to deploy seamlessly to **Vercel** with **Neon Serverless PostgreSQL**:
+
+1. **Push repository to GitHub**:
+   Ensure all commits are pushed to your GitHub repository:
+   ```bash
+   git push origin main
+   ```
+2. **Import to Vercel**:
+   - Go to [Vercel Dashboard](https://vercel.com) and click **"Add New Project"**.
+   - Import your GitHub repository (`ApparelFlow-ERP`).
+   - Framework preset: **Next.js**.
+3. **Configure Environment Variables in Vercel**:
+   Add the following variables under **Project Settings > Environment Variables**:
+   - `DATABASE_URL`: Your pooled Neon connection string (e.g., `postgresql://user:pass@ep-xyz-pooler.us-east-2.aws.neon.tech/apparelflow?sslmode=require&connect_timeout=30&pool_timeout=30`)
+   - `NEXTAUTH_SECRET`: A generated secret string (or 32-byte hex/base64)
+   - `NEXTAUTH_URL`: Your public Vercel production URL (e.g., `https://apparelflow-erp.vercel.app`)
+   - `AUTH_SECRET`: Same value as `NEXTAUTH_SECRET`
+4. **Deploy**:
+   - Click **Deploy**. Vercel will build and deploy the Next.js App Router application.
+5. **Verify Database Seed (if new database)**:
+   - Run `npx prisma db seed` locally pointed at your Neon DB, or trigger it via a postinstall step to ensure demo accounts and recipes are ready for evaluation.
+
+---
+
+## 🔒 Security & Server-Side Guarantees
+
+- **Server-Side RBAC**: Every API route and Server Action verifies `session.user.role` from server-side JWT session.
+- **Server Hard Stop (HTTP 422)**: Rejects batch approval with HTTP 422 if any single component has a shortage or missing count.
+- **Query Isolation**: Sewing Queue queries strictly enforce `WHERE status IN ('VERIFIED', 'SEWING_IN_PROGRESS')` at the database level.
+- **Tamper Protection**: Verifier identity and audit timestamps are derived from the authenticated server session, never trusted from client request bodies.
+- **Immutable Audit Trail**: Verification decisions permanently record verifier attribution, timestamps, mandatory rejection notes, and calculated fabric wastage percentages.
+
+---
+
+## 📄 AI Engineering Protocol Report
+
+See [AI_OPTIMIZATION_REPORT.md](./AI_OPTIMIZATION_REPORT.md) for candid documentation of AI tools utilized, buggy AI code identified and remediated, and architectural hardening decisions.
 
 ---
 
